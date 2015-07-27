@@ -4,40 +4,69 @@
 	   <title>Grocery List</title>
        <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'>
        <link rel="stylesheet" href="style.css" type="text/css" media="screen" charset="utf-8">
+	  
    </head>
    <body>
-	   <div class="right">
-		   <h3>Grocery List</h3>
-	       <p>
-	         <label for="new-item">Add Item</label><input id="new-item" type="text"><button>Add</button>
-	       </p>
-		   <ul id="to-buy">
-	           <li><input type="checkbox"><label>Bananas</label><input type="text"><button class="edit">Edit</button><button class="delete">Delete</button></li>
-	           <li class="editMode"><input type="checkbox"><label>Chicken</label><input type="text" value="Chicken"><button class="edit">Edit</button><button class="delete">Delete</button></li>
-		   </ul>
+	   <div class="right" style="float: right; width: 25%;">
+		   <div class="header-row">
+			   Grocery List
+		   </div>
+		   <div class="body row scroll-y">
+	          <p style="text-align: center">
+	             <label for="new-item">Add Item</label><input id="new-item" type="text"><button>Add</button>
+	          </p>
+		      <ul id="to-buy">
+	              <li><input type="checkbox"><label>Bananas</label><input type="text"><button class="edit">Edit</button><button class="delete">Delete</button></li>
+	              <li class="editMode"><input type="checkbox"><label>Chicken</label><input type="text" value="Chicken"><button class="edit">Edit</button><button class="delete">Delete</button></li>
+		      </ul>
+	       </div>
 	   </div>
-	   <div class="middle-right">
-		   <h3>In Stock</h3>
-		   <ul id="in-stock">
-			   <li><input type="checkbox" checked><label>Butter</label><input type="text"><button class="edit">Edit</button><button class="delete">Delete</button></li>
-		   </ul>
+	   <div class="middle-right" style="float: right; width: 25%;">
+		   <div class="header-row">
+			   In Stock
+		   </div>
+		   <div class="body row scroll-y">
+ 	          <p style="text-align: center">
+ 	             <label for="new-item">Add Item</label><input id="new-item" type="text"><button>Add</button>
+ 	          </p>
+		      <ul id="in-stock">
+			      <li><input type="checkbox" checked><label>Butter</label><input type="text"><button class="edit">Edit</button><button class="delete">Delete</button></li>
+		      </ul>
+		  </div>
 	   </div>
-	   <div class="left">
-		   <h3>Recipes</h3>
-		   <ul id="recipes">
-			   <li class="selected"><label>Tacos</label><button class="edit">Edit</button><button class="delete">Delete</button></li>
-			   <li><label>Chicken and Rice</label><button class="edit">Edit</button><button class="delete">Delete</button></li>
-		   </ul>
+	   <div class="middle-left" style="float: right; width: 25%;">
+		   <div class="header-row">
+			   Ingredients
+		   </div>
+		   <div class="body row scroll-y">
+ 	          <p style="text-align: center">
+ 	             <label for="new-item">Add Item</label><input id="new-item" type="text"><button>Add</button>
+ 	          </p>
+		      <ul id="ingredients">
+			      <li><label>Beans</label><button class="edit">Edit</button><button class="delete">Delete</button></li>
+			      <li><label>Tortillas</label><button class="edit">Edit</button><button class="delete">Delete</button></li>
+			      <li><label>Tomatoes</label><button class="edit">Edit</button><button class="delete">Delete</button></li>
+			      <li><label>Onions</label><button class="edit">Edit</button><button class="delete">Delete</button></li>
+			      <li><label>Jalapenos</label><button class="edit">Edit</button><button class="delete">Delete</button></li>
+		      </ul>
+		  </div>
+	  </div>
+	   <div class="left" style="float: right; width: 25%;">
+		   <div class="header-row">
+			   Recipes
+		   </div>
+		   <div class="body row scroll-y">
+ 	          <p style="text-align: center">
+ 	             <label for="new-item">Add Item</label><input id="new-item" type="text"><button>Add</button>
+ 	          </p>
+		      <ul id="recipes">
+			      <li class="selected"><label>Tacos</label><button class="edit">Edit</button><button class="delete">Delete</button></li>
+			      <li><label>Chicken and Rice</label><button class="edit">Edit</button><button class="delete">Delete</button></li>
+		      </ul>
+		  </div>
 	   </div>
-	   <div class="middle-left">
-		   <h3>Ingredients</h3>
-		   <ul id="ingredients">
-			   <li><label>Beans</label><button class="edit">Edit</button><button class="delete">Delete</button></li>
-			   <li><label>Tortillas</label><button class="edit">Edit</button><button class="delete">Delete</button></li>
-			   <li><label>Tomatoes</label><button class="edit">Edit</button><button class="delete">Delete</button></li>
-			   <li><label>Onions</label><button class="edit">Edit</button><button class="delete">Delete</button></li>
-			   <li><label>Jalapenos</label><button class="edit">Edit</button><button class="delete">Delete</button></li>
-		   </ul>
-	   </div>
+	 </div>
+	   
+	<script type="text/javascript" src="grocery.js"></script>
    </body>
 </html>

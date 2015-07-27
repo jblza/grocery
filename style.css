@@ -1,2 +1,44 @@
+.header-row {
+	text-align: center;
+}
+body {
+	background: #fff;
+	color: #333;
+	font-family: Lato, sans-serif;
+}
+li, h3 {
+  clear:both;
+  list-style:none;
+}
+button {
+  background: none;
+  border: 0px;
+  color: #888;
+  font-size: 10px;
+  width: 40px;
+  margin: 0px 0 0;
+  font-family: Lato, sans-serif;
+  cursor: pointer;
+}
+button:hover {
+  color: #CF2323;
+}
+li >  input[type="text"] {
+  width: 110px;
+}
 
+.edit, .delete {
+	float: right;
+}
+/* Edit Task */
+ul li input[type=text] {
+  display:none;
+}
 
+ul li.editMode input[type=text] {
+  display:inline;
+}
+
+ul li.editMode label {
+  display:none;
+}
