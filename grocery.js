@@ -14,7 +14,7 @@ console.log(test.toString());*/
 
 var groceryListHolder = document.getElementById("to-buy");
 var inStockListHolder = document.getElementById("in-stock");
-var ingredientsListHolder = document.getElementById("ingredients");
+var ingredientListHolder = document.getElementById("ingredients");
 var recipeListHolder = document.getElementById("recipes");
 
 //set default values in localStorage
@@ -49,24 +49,70 @@ var initLocalStorage = function(){
 
 //load page from localStorage
 var loadPage = function() {
-  
+   var recipes = JSON.parse(localStorage.getItem('recipeList'));
    //grocery list
-	loadList(createBasicListItem, localStorage.getItem('groceryList').split(","));
+	loadList(createBasicListItem, localStorage.getItem('groceryList').split(","), "grocery");
    //instock
+    loadList(createBasicListItem, localStorage.getItem('inStock').split(","), "instock");
    //ingredients
+	loadList(createBasicListItem, recipes[Object.keys(recipes)[0]], "ingredient");
    //recipes
-    //create new taskitem for each element
-    //append each one where it needs to go
+	loadList(createBasicListItem, Object.keys(recipes), "recipe");
+}
+
+var loadList = function(createListItems, lables, type) {
+	if(type === "grocery") {
+	   for(var i = 0; i < lables.length; i++) {
+	   	   var listItem = createListItems(lables[i], type);
+		   groceryListHolder.appendChild(listItem);  
+		   bindTaskEvents(listItem, itemBought);
+	   }
+	} else if (type === "instock") {
+ 	   for(var i = 0; i < lables.length; i++) {
+ 	   	   var listItem = createListItems(lables[i], type);
+ 		   inStockListHolder.appendChild(listItem);  
+ 		   bindTaskEvents(listItem, itemOutOfStock);
+	   }
+	} else if (type === "ingredient") {
+  	   for(var i = 0; i < lables.length; i++) {
+  	   	   var listItem = createListItems(lables[i], type);
+  		   ingredientListHolder.appendChild(listItem);  
+  		   bindTaskEvents(listItem);
+ 	   }
+	} else if (type === "recipe") {
+   	   for(var i = 0; i < lables.length; i++) {
+   	   	   var listItem = createListItems(lables[i], type);
+		   if (i === 0){
+			   listItem.querySelector("input[type=checkbox]").checked = true;
+		   }
+   		   recipeListHolder.appendChild(listItem);  
+   		   bindTaskEvents(listItem, recipeSelect); 
+  	   }
+	} else {
+		console.log("loadList failed /type/ not set");
+	}
 	
 }
 
-var loadList = function(createListItems, lables) {
-	for(var i = 0; i < lables.length; i++) {
-		var listItem = createListItems(lables[i]);
-		groceryListHolder.appendChild(listItem);  //<--------
-		bindTaskEvents(listItem, itemBought);
-	}
+//checkbox event for recipes
+var recipeSelect = function() {
+	//gets the label of the selected list item   
+	var label = this.parentNode.querySelector("label").innerText;
 	
+	//gets a collection of the list items in the recipe section
+	//loops through and deselects all check boxes
+	var childList = this.parentNode.parentNode.children;
+	for(var i = 0; i < childList.length; i++){
+		childList[i].querySelector("input[type=checkbox]").checked = false;
+	}
+	//makes the current checkbox checked
+	this.checked = true;
+	
+	//loads the ingridients from the selected recipe
+	while(ingredientListHolder.firstChild){
+		ingredientListHolder.removeChild(ingredientListHolder.firstChild);
+	}
+	loadList(createBasicListItem, JSON.parse(localStorage.getItem('recipeList'))[label], "ingredient");	
 }
 
 //mark an item as bought and append it to the instock list
@@ -95,7 +141,9 @@ var bindTaskEvents = function(taskListItem, checkBoxEventHandler) {
     deleteButton.onclick = deleteItem;
   
         //bind checkBoxEventHandler to the check box
-    checkBox.onchange = checkBoxEventHandler;
+	if(checkBox !== null) {
+        checkBox.onchange = checkBoxEventHandler;
+	}
 }
 
 var editItem = function () {
@@ -148,9 +196,7 @@ var itemOutOfStock = function() {
 var createBasicListItem = function(labelString, type) {
 	//create list item
 	var listItem = document.createElement("li");
-	//input checkbox
-	var checkBox = document.createElement("input");
-  // label
+    // label
     var label = document.createElement("label");
     // input (text)
     var editInput = document.createElement("input"); //text
@@ -160,7 +206,6 @@ var createBasicListItem = function(labelString, type) {
     var deleteButton = document.createElement("button");
 	
 	//modify each element
-	checkBox.type = "checkbox";
 	editInput.type = "text";
 	editButton.textContent = "Edit";
 	editButton.className = "edit";
@@ -168,8 +213,19 @@ var createBasicListItem = function(labelString, type) {
 	deleteButton.className = "delete";
 	label.textContent = labelString;
 	
+	//if ingredient type leave off checkbox
+	if (type !== "ingredient") {
+		var checkBox = document.createElement("input");
+		checkBox.type = "checkbox";
+		if(type === "instock"){
+			checkBox.checked = true;
+			console.log("checked");
+		}
+		listItem.appendChild(checkBox);
+		
+	}
+	
 	//append everything to the li
-	listItem.appendChild(checkBox);
 	listItem.appendChild(label);
 	listItem.appendChild(editInput);
 	listItem.appendChild(editButton);
