@@ -45,6 +45,7 @@ var initLocalStorage = function(){
 		defaultValues();
 	}
 	console.log("localStorage intact");
+	//defaultValues();
 };
 
 //load page from localStorage
@@ -118,13 +119,33 @@ var recipeSelect = function() {
 //mark an item as bought and append it to the instock list
 var itemBought = function() {
 	console.log("item marked bought");
-	//append item to #in-stock
 	var listItem = this.parentNode;
+	var label = this.parentNode.querySelector("label").innerText;
+	var groceryList = localStorage.getItem('groceryList').split(',');
+	var inStockList = localStorage.getItem('inStock').split(',');
+	
+	//append item to #in-stock
 	inStockListHolder.appendChild(listItem);
 	bindTaskEvents(listItem, itemOutOfStock);
 	
+	var balls = removeFromList(label, groceryList).toString();
+	
 	//need remove item for localStorage GroceryList
+	localStorage.setItem('groceryList', balls);
+	
 	//and add to localStorage instock
+	inStockList.push(label);
+	localStorage.setItem('inStock', inStockList.toString());
+}
+
+var removeFromList = function(item, arr) {
+	var i = arr.indexOf(item);
+	if(i > -1) {
+		arr.splice(i, 1);
+	} else {
+		console.log("error could not remove item from list");
+	}
+	return arr;
 }
 
 var bindTaskEvents = function(taskListItem, checkBoxEventHandler) {
@@ -147,12 +168,13 @@ var bindTaskEvents = function(taskListItem, checkBoxEventHandler) {
 }
 
 var editItem = function () {
-	console.log("edit task");             ///<----- edit to reflect changes in local storage
-  
+	  console.log("edit task");             ///<----- edit to reflect changes in local storage
+    
 	  var listItem = this.parentNode;
-  
+      var listType = this.parentNode.parentNode.id;
 	  var editInput = listItem.querySelector("input[type=text]");
 	  var label = listItem.querySelector("label");
+	  var oldLabel = label.innerText;
   
 	    // if the class of the parent is .editMode
 	  var containsClass = listItem.classList.contains("editMode");
@@ -161,6 +183,7 @@ var editItem = function () {
 	    // switch from .editMode
 	    // label text become the input's value
 	    label.innerText = editInput.value;
+		editData(listType, label.innerText, oldLabel);
 	  } else{
 	    // switch to .editMode
 	    // input value becomes the labels text
@@ -168,6 +191,48 @@ var editItem = function () {
 	  }
 	    // Toggle .editMode on the listItem
 	    listItem.classList.toggle("editMode");
+}
+
+var editData = function(listType, newLabel, oldLabel) {
+	if (listType === "to-buy") {
+		var arr = localStorage.getItem('groceryList').split(',');
+		var i = arr.indexOf(oldLabel);
+		arr[i] = newLabel;
+		localStorage.setItem('groceryList', arr.toString());	
+	} else if (listType === "in-stock") {
+		var arr = localStorage.getItem('inStock').split(',');
+		var i = arr.indexOf(oldLabel);
+		arr[i] = newLabel;
+		localStorage.setItem('inStock', arr.toString());	
+	} else if (listType === "ingredients") {
+		var children = document.getElementById("recipes").querySelectorAll("li");
+		var i = 0;
+		label = null;
+		while (label === null && i < children.length){
+			if(children[i].querySelector("input[type=checkbox]").checked === true) {
+				label = children[i].querySelector("label").innerText;
+			}
+			i++;
+		}
+		if (label !== null) {
+			var recipeList = JSON.parse(localStorage.getItem('recipeList'));
+			var ingredients = recipeList[label];
+			var j = ingredients.indexOf(oldLabel);
+			ingredients[j] = newLabel;
+			recipeList[label] = ingredients;
+			localStorage.setItem('recipeList', JSON.stringify(recipeList));
+		} else {
+			console.log("error ingredients in function editData could not find parent recipe")
+		}
+			
+	} else if (listType === "recipes") {
+		var recipeList = JSON.parse(localStorage.getItem('recipeList'));
+		recipeList[newLabel] = recipeList[oldLabel];
+		delete recipeList[oldLabel];
+		localStorage.setItem('recipeList', JSON.stringify(recipeList));
+	} else {
+		console.log("error function editData: invalid list ID");
+	}
 }
 
 var deleteItem = function () {
@@ -184,11 +249,19 @@ var deleteItem = function () {
 var itemOutOfStock = function() {
 	console.log("item marked out of stock");
 	var listItem = this.parentNode;
+	var label = this.parentNode.querySelector("label").innerText;
+	var groceryList = localStorage.getItem('groceryList').split(",");
+	var inStockList = localStorage.getItem('inStock').split(",");
+	
 	groceryListHolder.appendChild(listItem);
 	bindTaskEvents(listItem, itemBought);
 	
 	//need remove item for localStorage instock
+	localStorage.setItem('inStock', removeFromList(label, inStockList).toString());
+	
 	//and add to localStorage groceryList
+	groceryList.push(label);
+	localStorage.setItem('groceryList', groceryList.toString());
 }
 
 
