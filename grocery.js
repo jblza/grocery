@@ -51,6 +51,7 @@ var initLocalStorage = function(){
 //load page from localStorage
 var loadPage = function() {
    var recipes = JSON.parse(localStorage.getItem('recipeList'));
+   flushGhostItems();
    //grocery list
 	loadList(createBasicListItem, localStorage.getItem('groceryList').split(","), "grocery");
    //instock
@@ -61,28 +62,52 @@ var loadPage = function() {
 	loadList(createBasicListItem, Object.keys(recipes), "recipe");
 }
 
-var loadList = function(createListItems, lables, type) {
+var flushGhostItems = function() {
+	var gList = localStorage.getItem('groceryList').split(",");
+	var iList = localStorage.getItem('inStock').split(",");
+	for(var i = 0; i < gList.length; i++) {
+		if(gList[i] === ""){
+			gList.splice(i, 1);
+		}
+	}
+	localStorage.setItem('groceryList', gList);
+	
+	for(var i = 0; i < iList.length; i++) {
+		if(iList[i] === ""){
+			iList.splice(i, 1);
+		}
+	}
+	localStorage.setItem('inStock', iList);
+}
+
+var loadList = function(createListItems, labels, type) {
 	if(type === "grocery") {
-	   for(var i = 0; i < lables.length; i++) {
-	   	   var listItem = createListItems(lables[i], type);
-		   groceryListHolder.appendChild(listItem);  
-		   bindTaskEvents(listItem, itemBought);
+	   for(var i = 0; i < labels.length; i++) {
+		   if (labels[i] !== "") {
+	   	       var listItem = createListItems(labels[i], type);
+		       groceryListHolder.appendChild(listItem);  
+		       bindTaskEvents(listItem, itemBought);
+		   }
 	   }
 	} else if (type === "instock") {
- 	   for(var i = 0; i < lables.length; i++) {
- 	   	   var listItem = createListItems(lables[i], type);
- 		   inStockListHolder.appendChild(listItem);  
- 		   bindTaskEvents(listItem, itemOutOfStock);
+ 	   for(var i = 0; i < labels.length; i++) {
+		   if (labels[i] !== "") {
+ 	   	       var listItem = createListItems(labels[i], type);
+ 		       inStockListHolder.appendChild(listItem);  
+ 		       bindTaskEvents(listItem, itemOutOfStock);
+	       }
 	   }
 	} else if (type === "ingredient") {
-  	   for(var i = 0; i < lables.length; i++) {
-  	   	   var listItem = createListItems(lables[i], type);
-  		   ingredientListHolder.appendChild(listItem);  
-  		   bindTaskEvents(listItem);
- 	   }
+		if(labels !== undefined){
+  	        for(var i = 0; i < labels.length; i++) {
+  	      	   var listItem = createListItems(labels[i], type);
+  	     	   ingredientListHolder.appendChild(listItem);  
+  		       bindTaskEvents(listItem); 
+ 	       }
+	   }
 	} else if (type === "recipe") {
-   	   for(var i = 0; i < lables.length; i++) {
-   	   	   var listItem = createListItems(lables[i], type);
+   	   for(var i = 0; i < labels.length; i++) {
+   	   	   var listItem = createListItems(labels[i], type);
 		   if (i === 0){
 			   listItem.querySelector("input[type=checkbox]").checked = true;
 		   }
@@ -182,7 +207,7 @@ var editItem = function () {
 	  if(containsClass) {
 	    // switch from .editMode
 	    // label text become the input's value
-	    label.innerText = editInput.value;
+	    label.innerText = editInput.value.toLowerCase();
 		editData(listType, label.innerText, oldLabel);
 	  } else{
 	    // switch to .editMode
@@ -205,15 +230,7 @@ var editData = function(listType, newLabel, oldLabel) {
 		arr[i] = newLabel;
 		localStorage.setItem('inStock', arr.toString());	
 	} else if (listType === "ingredients") {
-		var children = document.getElementById("recipes").querySelectorAll("li");
-		var i = 0;
-		label = null;
-		while (label === null && i < children.length){
-			if(children[i].querySelector("input[type=checkbox]").checked === true) {
-				label = children[i].querySelector("label").innerText;
-			}
-			i++;
-		}
+		var label = getCurrentRecipe();
 		if (label !== null) {
 			var recipeList = JSON.parse(localStorage.getItem('recipeList'));
 			var ingredients = recipeList[label];
@@ -235,14 +252,103 @@ var editData = function(listType, newLabel, oldLabel) {
 	}
 }
 
+var getCurrentRecipe = function() {
+	var children = document.getElementById("recipes").querySelectorAll("li");
+	var i = 0;
+	var label = null;
+	while (label === null && i < children.length){
+		if(children[i].querySelector("input[type=checkbox]").checked === true) {
+			label = children[i].querySelector("label").innerText;
+		}
+		i++;
+	}
+	return label;
+}
+
 var deleteItem = function () {
 	console.log("delete task...");
 	  // remove parent list item from the ul
 	  var listItem = this.parentNode;
 	  var ul = listItem.parentNode;
+	  var label = listItem.querySelector("label");
+      var listType = this.parentNode.parentNode.id;
   
 	  //remove the parent list item from the ul
 	  ul.removeChild(listItem);
+	  deleteData(listType, label.innerText);
+}
+
+var deleteData = function(listType, label) {
+	if (listType === 'to-buy') {
+		var arr = localStorage.getItem('groceryList').split(',');
+		var i = arr.indexOf(label);
+		arr.splice(i, 1);
+		localStorage.setItem('groceryList', arr.toString());
+	} else if (listType === 'in-stock') {
+		var arr = localStorage.getItem('inStock').split(',');
+		var i = arr.indexOf(label);
+		arr.splice(i, 1);
+		localStorage.setItem('inStock', arr.toString());
+	} else if (listType === 'ingredients') {
+		var recipeLabel = getCurrentRecipe();
+		if (recipeLabel !== null) {
+			var recipeList = JSON.parse(localStorage.getItem('recipeList'));
+			var ingredients = recipeList[recipeLabel];
+			var j = ingredients.indexOf(label);
+			ingredients.splice(j, 1);
+			console.log(ingredients);
+			if (ingredients.length === 0){
+				console.log("123 delete recipe" + recipeLabel + "1");
+				var listItem = returnRecipeFromLabel(recipeLabel);
+				var ul = listItem.parentNode;
+				ul.removeChild(listItem);
+				deleteData('recipes', recipeLabel);
+			} else {
+			    recipeList[recipeLabel] = ingredients;
+			    localStorage.setItem('recipeList', JSON.stringify(recipeList));
+			}	
+		} else {
+			console.log("error ingredients in function deleteData could not find parent recipe")
+		}
+	} else if (listType === 'recipes') {
+		var recipeList = JSON.parse(localStorage.getItem('recipeList'));
+		delete recipeList[label];
+		localStorage.setItem('recipeList', JSON.stringify(recipeList));
+		recipeHelper();
+	} else {
+		console.log("error function deleteData: listType not valid");
+	}
+}
+
+//returns a live list item of the provided label
+var returnRecipeFromLabel = function (label) {
+	var ul = document.getElementById("recipes");
+	var listItem;
+	for(var i = 0; i< ul.children.length; i++){
+		console.log(ul.children[i].querySelector("label").innerText);
+	      if(ul.children[i].querySelector("label").innerText === label)
+	      {
+	         listItem = ul.children[i];
+	      }
+	    }    
+	return listItem;
+}
+
+var recipeHelper= function() {
+	var label = getCurrentRecipe();
+	if (label === null) {
+		var children = document.getElementById("recipes").querySelectorAll("li");
+		if (children.length !== 0){
+		    label = children[0].querySelector("label").innerText;
+		    children[0].querySelector("input[type=checkbox]").checked = true;
+		}
+	}
+	while(ingredientListHolder.firstChild){
+		ingredientListHolder.removeChild(ingredientListHolder.firstChild);
+	}
+	if (label !== null){
+	    loadList(createBasicListItem, JSON.parse(localStorage.getItem('recipeList'))[label], "ingredient");
+	}	
 }
 
 //mark item as out of stock append to grocery list
