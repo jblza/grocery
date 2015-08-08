@@ -12,10 +12,102 @@ console.log(test);
 console.log(test.split(","));
 console.log(test.toString());*/
 
+var groceryInput = document.getElementById("new-grocery");
+var groceryButton = document.getElementById("groceryButton");
+var inStockInput = document.getElementById("new-instock");
+var inStockButton = document.getElementById("inStockButton");
+var ingredientInput = document.getElementById("new-ingredient");
+var ingredientButton = document.getElementById("ingredientButton");
+var recipeInput = document.getElementById("new-recipe");
+var recipeButton = document.getElementById("recipeButton");
+var resetButton = document.getElementById("zero");
+
+
 var groceryListHolder = document.getElementById("to-buy");
 var inStockListHolder = document.getElementById("in-stock");
 var ingredientListHolder = document.getElementById("ingredients");
 var recipeListHolder = document.getElementById("recipes");
+
+
+var addItem = function(type) {
+	return function() {
+	    var listItem;
+		var label;
+	    if(type === "grocery") {
+	       label = groceryInput.value.toLowerCase().trim();
+		   if (label !== ""){
+			   listItem = createBasicListItem(label, type);
+	    	   groceryListHolder.appendChild(listItem);
+	    	   bindTaskEvents(listItem, itemBought);
+			   addData(label, type);
+			   groceryInput.value = "";
+		    }
+    	} else if (type === "instock") {
+			label = inStockInput.value.toLowerCase().trim();
+			if (label !== ""){
+			    listItem = createBasicListItem(label, type);
+    		    inStockListHolder.appendChild(listItem);
+	    	    bindTaskEvents(listItem, itemOutOfStock);
+				addData(label, type);
+			    inStockInput.value = "";
+			}
+    	} else if (type === "ingredient") {
+			label = ingredientInput.value.toLowerCase().trim();
+			if (label !== ""){	
+			   listItem = createBasicListItem(label, type);
+    		   ingredientListHolder.appendChild(listItem);
+    		   bindTaskEvents(listItem);
+			   addData(label, type);
+			   ingredientInput.value = "";
+		   }
+    	} else if (type === "recipe") {
+			label = recipeInput.value.toLowerCase().trim();
+			if (label !== ""){
+			   listItem = createBasicListItem(label, type);
+			   if (recipeListHolder.children.length === 0) {
+			    	listItem.querySelector("input[type=checkbox]").checked = true;
+			   }
+	    	   recipeListHolder.appendChild(listItem);
+	    	   bindTaskEvents(listItem, recipeSelect);
+			   addData(label, type);
+			   recipeInput.value = "";
+		   }
+	    } else {
+	    	console.log("error function addItem: type unknown");
+	    }
+		console.log("add " + type);
+		console.log(listItem);
+	};
+}
+
+var addData = function(label, type) {
+    if(type === "grocery") {
+		var arr = localStorage.getItem('groceryList').split(',');
+		arr.push(label);
+		localStorage.setItem('groceryList', arr.toString());
+	} else if (type === "instock") {
+		var arr = localStorage.getItem('inStock').split(',');
+		arr.push(label);
+		localStorage.setItem('inStock', arr.toString());
+	} else if (type === "ingredient") {
+		var recipeLabel = getCurrentRecipe();
+		if (recipeLabel !== null) {
+			var recipeList = JSON.parse(localStorage.getItem('recipeList'));
+			var ingredients = recipeList[recipeLabel];
+			ingredients.push(label);
+			recipeList[recipeLabel] = ingredients;
+			localStorage.setItem('recipeList', JSON.stringify(recipeList));
+		} else {
+			console.log("error ingredients in function addData could not find parent recipe")
+		}
+	} else if (type === "recipe") {
+		var recipeList = JSON.parse(localStorage.getItem('recipeList'));
+		recipeList[label] = [];
+		localStorage.setItem('recipeList', JSON.stringify(recipeList));	
+    } else {
+    	console.log("error function addData: type unknown");
+    }
+}
 
 //set default values in localStorage
 var defaultValues = function () {
@@ -207,7 +299,7 @@ var editItem = function () {
 	  if(containsClass) {
 	    // switch from .editMode
 	    // label text become the input's value
-	    label.innerText = editInput.value.toLowerCase();
+	    label.innerText = editInput.value.toLowerCase().trim();
 		editData(listType, label.innerText, oldLabel);
 	  } else{
 	    // switch to .editMode
@@ -462,5 +554,26 @@ var createBasicListItem = function(labelString, type) {
 
 //populate grocery list
 
+var showData = function() {
+	var recipes = JSON.parse(localStorage.getItem('recipeList'));
+	console.log("grocery list: " + localStorage.getItem('groceryList').split(",") + " length " + localStorage.getItem('groceryList').split(",").length);
+	console.log("instock list: " + localStorage.getItem('inStock').split(",") + " length " + localStorage.getItem('inStock').split(",").length);
+	console.log("recipe list: " + Object.keys(recipes) + " length " + Object.keys(recipes).length);
+	console.log("ingredient lists");
+	for(var i = 0; i < Object.keys(recipes).length; i++){
+		console.log(recipes[Object.keys(recipes)[i]] + " length " + recipes[Object.keys(recipes)[i]].length);
+	}
+	console.log("recipeListHolder children " + recipeListHolder.children + " length " + recipeListHolder.children.length);
+	
+}
+
+groceryButton.onclick = addItem("grocery");
+inStockButton.onclick = addItem("instock");
+ingredientButton.onclick = addItem("ingredient");
+recipeButton.onclick = addItem("recipe");
+resetButton.addEventListener("click", function (){return window.location.reload();});
+
 initLocalStorage();
 loadPage();
+showData();
+
