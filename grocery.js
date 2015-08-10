@@ -21,6 +21,11 @@ var ingredientButton = document.getElementById("ingredientButton");
 var recipeInput = document.getElementById("new-recipe");
 var recipeButton = document.getElementById("recipeButton");
 var resetButton = document.getElementById("zero");
+var fourButton = document.getElementById("four");
+var threeButton = document.getElementById("three");
+var twoButton = document.getElementById("two");
+var oneButton = document.getElementById("one");
+var commitButton = document.getElementById("commit");
 
 
 var groceryListHolder = document.getElementById("to-buy");
@@ -135,6 +140,9 @@ var initLocalStorage = function(){
 	if(checkLocalStorage()){
     //create default elements in local storage
 		defaultValues();
+	}
+	if (localStorage.getItem('potentialGroceryList') !== null){
+		localStorage.removeItem('potentialGroceryList');
 	}
 	console.log("localStorage intact");
 	//defaultValues();
@@ -391,7 +399,7 @@ var deleteData = function(listType, label) {
 			console.log(ingredients);
 			if (ingredients.length === 0){
 				console.log("123 delete recipe" + recipeLabel + "1");
-				var listItem = returnRecipeFromLabel(recipeLabel);
+				var listItem = returnListItemFromLabel(recipeLabel, "recipes");
 				var ul = listItem.parentNode;
 				ul.removeChild(listItem);
 				deleteData('recipes', recipeLabel);
@@ -413,8 +421,8 @@ var deleteData = function(listType, label) {
 }
 
 //returns a live list item of the provided label
-var returnRecipeFromLabel = function (label) {
-	var ul = document.getElementById("recipes");
+var returnListItemFromLabel = function (label, id) {
+	var ul = document.getElementById(id);
 	var listItem;
 	for(var i = 0; i< ul.children.length; i++){
 		console.log(ul.children[i].querySelector("label").innerText);
@@ -505,55 +513,176 @@ var createBasicListItem = function(labelString, type) {
 	return listItem;
 }
 
+var stageList = function (num) {
+	return function() {
+		reLoad();
+		compareIngredients(num);
+	}
+}
 
+var compareIngredients = function (num){
+	var inStock = localStorage.getItem('inStock').split(",");
+	var recipeList = JSON.parse(localStorage.getItem('recipeList'));
+	var recipes = Object.keys(recipeList);
+	var ingredients = [];
+	var potentialGroceryList = [];
+	var matches = [];
+	var allMatches = [];
+	
+	for(var i = 0; i < recipes.length; i++) {
+		ingredients = recipeList[recipes[i]];
+		console.log("ingredients: " + ingredients);
+		if (ingredients.length > num){
+			matches = returnMatches(ingredients, inStock);
+			//how do i highlight ingredients?
+			console.log("matches " + matches);
+			if (matches.length >= num) {
+				highlight(recipes[i], num, "recipes");
+				allMatches = allMatches.concat(matches);
+				potentialGroceryList = potentialGroceryList.concat(returnDifference(ingredients, inStock));
+			}
+		}
+		
+	}
+	allMatches = removeDuplicates(allMatches);
+	potentialGroceryList = removeDuplicates(potentialGroceryList);
+	for(var k = 0; k < allMatches.length; k++){
+		highlight(allMatches[k], num, "in-stock", true)
+	}
+	console.log(potentialGroceryList);
+	console.log(allMatches);
+	stageResults(potentialGroceryList, num);
+	localStorage.setItem('potentialGroceryList', potentialGroceryList);
+}
 
+var stageResults = function(arr, num){
+	var listItem;
+	var groceryList = localStorage.getItem('groceryList').split(",");
+	var matches = returnMatches(arr, groceryList);
+	console.log("MATCHES: " + matches);
+	for(var i = 0; i < matches.length; i++){
+		highlight(matches[i], num, "to-buy", true);
+		var j = arr.indexOf(matches[i]);
+		arr.splice(j, 1);
+	}
+	for(var i = 0; i < arr.length; i++){
+		listItem = createBasicListItem(arr[i], "grocery");
+		listItem.style.background = numColor(num);
+		groceryListHolder.insertBefore(listItem, groceryListHolder.firstChild);
+	}
+	
+}
 
+var highlight = function (label, num, id, faded){
+	listItem = returnListItemFromLabel(label, id);
+	listItem.style.background = numColor(num, faded);
+}
 
-//add item
-   //When the button is pressed
-   //create a new list item with the text from #new-item
-      //imput checkbox
-      //label
-      //input (text)
-      //button.edit
-      //button.delete
-      //each element, needs to be modified and appended
+var numColor = function (num, faded) {
+	if(num === 1){
+		if (faded === true){
+			return "#FFC0C0";
+		}else {
+		    return "red";
+		}
+	} else if (num === 2){
+		if (faded === true){
+			return "#FFDFA3";
+		} else {
+			return "orange";
+		}
+	} else if (num === 3){
+		if (faded === true) {
+			return "#FFFFC2";
+		} else{
+		    return "yellow";
+		}
+	} else if (num === 4){
+		if (faded === true){
+			return "#C0F3C0";
+		}else {
+		    return "#00cf00";
+		}
+	} else {
+		return null;
+	}
+}
 
+var reLoad = function () {
+	while(groceryListHolder.firstChild){
+		groceryListHolder.removeChild(groceryListHolder.firstChild);
+	}
+	while(inStockListHolder.firstChild){
+		inStockListHolder.removeChild(inStockListHolder.firstChild);
+	}
+	while(recipeListHolder.firstChild){
+		recipeListHolder.removeChild(recipeListHolder.firstChild);
+	}
+	while(ingredientListHolder.firstChild){
+		ingredientListHolder.removeChild(ingredientListHolder.firstChild);
+	}
+	if (localStorage.getItem('potentialGroceryList') !== null){
+		localStorage.removeItem('potentialGroceryList');
+	}
+	loadPage();
+}
 
-//add item to stock or label item as bought
-    //when checkbox is checked
-       //append the task list item to the #in-stock
+var returnMatches = function (ingredients, inStock){
+	var matches = [];
+	for(var i = 0; i < ingredients.length; i++) {
+		for(var j = 0; j < inStock.length; j++){
+			if(ingredients[i] === inStock[j]){
+				matches.push(ingredients[i]);
+			}
+		}
+	}
+	return matches;
+}
 
-//mark item as out of stock and let it be added back to the list
-    //when checkbox is unchecked
-       //append the task list item to the #to-buy
+var returnDifference = function (ingredients, inStock){
+	var difference = [];
+	var matched = false;
+	for(var i = 0; i < ingredients.length; i++) {
+		for(var j = 0; j < inStock.length; j++){
+			if(ingredients[i] === inStock[j]){
+				matched = true;
+			}
+		}
+		if(!matched){
+			difference.push(ingredients[i]);
+		}
+		matched = false;
+	}
+	return difference;	
+}
 
+var removeDuplicates = function (arr){
+	newArr = [];
+	obj = {};
+	for(var i = 0; i < arr.length; i++){
+		obj[arr[i]] = 0;
+	}
+	for(var j in obj){
+		newArr.push(j);
+	}
+	return newArr;
+}
 
-//delete item 
-   //when the delete button is pressed
-      //remove the parent list item from th ul
+var commitList = function() {
+	if (localStorage.getItem('potentialGroceryList') !== null){
+	    var newItems = localStorage.getItem('potentialGroceryList').split(",");
+	    var groceryList;
+	    if (newItems !== null && newItems !== undefined && (newItems.length > 0)){
+	    	groceryList = localStorage.getItem('groceryList').split(",");
+	    	groceryList = newItems.concat(groceryList);
+	    	localStorage.setItem('groceryList', groceryList);
+	    	localStorage.removeItem('potentialGroceryList');
+	    }
+	}
+	reLoad();
+}
 
-//edit item
-    //When the Edit button is pressed
-       // if the class of the parent is .editMode
-          //switch from editMode
-          // label text become the input's value
-       //else
-          //switch to .editMode
-          //input value becomes the labels text
-
-       //toggle .editMode on the parent
-
-
-//display ingedients for selected recipes
-   //when recipe is selected
-
-
-//store data
-
-
-//populate grocery list
-
+//shows the status of the localData in the console, for debugging purposes
 var showData = function() {
 	var recipes = JSON.parse(localStorage.getItem('recipeList'));
 	console.log("grocery list: " + localStorage.getItem('groceryList').split(",") + " length " + localStorage.getItem('groceryList').split(",").length);
@@ -572,6 +701,12 @@ inStockButton.onclick = addItem("instock");
 ingredientButton.onclick = addItem("ingredient");
 recipeButton.onclick = addItem("recipe");
 resetButton.addEventListener("click", function (){return window.location.reload();});
+fourButton.addEventListener("click", stageList(4));
+threeButton.addEventListener("click", stageList(3));
+twoButton.addEventListener("click", stageList(2));
+oneButton.addEventListener("click", stageList(1));
+commitButton.addEventListener("click", commitList);
+
 
 initLocalStorage();
 loadPage();
