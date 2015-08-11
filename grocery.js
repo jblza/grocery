@@ -114,7 +114,7 @@ var defaultValues = function () {
 		"mac and cheese": ["macaroni", "cheese", "milk", "butter", "flour"],
 		"beef and broccoli": ["beef", "broccoli", "soy sauce", "garlic", "corn starch"],
 		"burgers": ["ground beef", "buns", "tomato", "spinach", "onion"],
-		"salad": ["spinach", "tomato", "alvacado", "vinegar", "olive oil"],
+		"salad": ["spinach", "tomato", "avocado", "vinegar", "olive oil"],
 	});
 	localStorage.setItem('groceryList', ["bananas", "chicken",]);
 	localStorage.setItem('inStock', ["tortillas", "tomato", "onion", "celery", "butter", "flour", "garlic", "soy sauce", "ground beef", "buns", "spinach", "vinegar", "olive oil"]);
