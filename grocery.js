@@ -1,17 +1,6 @@
 //grocery.js
 
-
-
-/*console.log(JSON.parse(localStorage.getItem('recipeList')));
-//initLocalStorage();
-var test = JSON.parse(localStorage.getItem('recipeList'));
-console.log(test["tacos"]);
-console.log(localStorage.getItem('inStock'));
-test = localStorage.getItem('groceryList');
-console.log(test);
-console.log(test.split(","));
-console.log(test.toString());*/
-
+//add buttons and their inputs
 var groceryInput = document.getElementById("new-grocery");
 var groceryButton = document.getElementById("groceryButton");
 var inStockInput = document.getElementById("new-instock");
@@ -20,6 +9,8 @@ var ingredientInput = document.getElementById("new-ingredient");
 var ingredientButton = document.getElementById("ingredientButton");
 var recipeInput = document.getElementById("new-recipe");
 var recipeButton = document.getElementById("recipeButton");
+
+//auto-populate buttons
 var resetButton = document.getElementById("zero");
 var fourButton = document.getElementById("four");
 var threeButton = document.getElementById("three");
@@ -27,13 +18,13 @@ var twoButton = document.getElementById("two");
 var oneButton = document.getElementById("one");
 var commitButton = document.getElementById("commit");
 
-
+//holders for the list items
 var groceryListHolder = document.getElementById("to-buy");
 var inStockListHolder = document.getElementById("in-stock");
 var ingredientListHolder = document.getElementById("ingredients");
 var recipeListHolder = document.getElementById("recipes");
 
-
+//adds a list item from input to appropriate list
 var addItem = function(type) {
 	return function() {
 	    var listItem;
@@ -85,6 +76,7 @@ var addItem = function(type) {
 	};
 }
 
+//takes added items and effects those changes in the local storage data
 var addData = function(label, type) {
     if(type === "grocery") {
 		var arr = localStorage.getItem('groceryList').split(',');
@@ -117,15 +109,20 @@ var addData = function(label, type) {
 //set default values in localStorage
 var defaultValues = function () {
 	var recipes = JSON.stringify({
-		"tacos":["beans", "tortillas", "tomatoes", "onions", "jalapenos"],
-		"chicken and rice":["chicken", "rice", "onion", "carrot"]
+		"tacos":["beans", "tortillas", "tomato", "onion", "jalapenos"],
+		"chicken and rice":["chicken", "rice", "onion", "carrot", "celery"],
+		"mac and cheese": ["macaroni", "cheese", "milk", "butter", "flour"],
+		"beef and broccoli": ["beef", "broccoli", "soy sauce", "garlic", "corn starch"],
+		"burgers": ["ground beef", "buns", "tomato", "spinach", "onion"],
+		"salad": ["spinach", "tomato", "alvacado", "vinegar", "olive oil"],
 	});
-	localStorage.setItem('groceryList', ["bananas", "chicken", "tortillas"]);
-	localStorage.setItem('inStock', ["butter", "beans"]);
+	localStorage.setItem('groceryList', ["bananas", "chicken",]);
+	localStorage.setItem('inStock', ["tortillas", "tomato", "onion", "celery", "butter", "flour", "garlic", "soy sauce", "ground beef", "buns", "spinach", "vinegar", "olive oil"]);
 	localStorage.setItem('recipeList', recipes);
 	console.log("defaultValues set");
 };
 
+//reports whether local storage has been set or not
 var checkLocalStorage = function(){
 	console.log("checking localStorage");
 	if (localStorage.getItem('groceryList') === null || localStorage.getItem('inStock') === null || localStorage.getItem('recipeList') === null){
@@ -141,6 +138,7 @@ var initLocalStorage = function(){
     //create default elements in local storage
 		defaultValues();
 	}
+	//makes sure any leftover potential autopopulate data is cleared
 	if (localStorage.getItem('potentialGroceryList') !== null){
 		localStorage.removeItem('potentialGroceryList');
 	}
@@ -162,6 +160,9 @@ var loadPage = function() {
 	loadList(createBasicListItem, Object.keys(recipes), "recipe");
 }
 
+//ghost items can appear when all items in grocery or instock lists are deleted and then new ones are added.
+//i think this is due to the way local storage deals with having zero items stored in a defined variable.
+//not the most efficent way to deal with this issue but this function keeps them out of my hair
 var flushGhostItems = function() {
 	var gList = localStorage.getItem('groceryList').split(",");
 	var iList = localStorage.getItem('inStock').split(",");
@@ -180,6 +181,7 @@ var flushGhostItems = function() {
 	localStorage.setItem('inStock', iList);
 }
 
+//reads data from local storage and populates the lists
 var loadList = function(createListItems, labels, type) {
 	if(type === "grocery") {
 	   for(var i = 0; i < labels.length; i++) {
@@ -201,6 +203,7 @@ var loadList = function(createListItems, labels, type) {
 		if(labels !== undefined){
   	        for(var i = 0; i < labels.length; i++) {
   	      	   var listItem = createListItems(labels[i], type);
+			   //<<----------------------------------------------------------------------------
   	     	   ingredientListHolder.appendChild(listItem);  
   		       bindTaskEvents(listItem); 
  	       }
@@ -263,6 +266,7 @@ var itemBought = function() {
 	localStorage.setItem('inStock', inStockList.toString());
 }
 
+//removes an item from a list
 var removeFromList = function(item, arr) {
 	var i = arr.indexOf(item);
 	if(i > -1) {
@@ -273,6 +277,7 @@ var removeFromList = function(item, arr) {
 	return arr;
 }
 
+//assigns functions to onclick and onchange actions
 var bindTaskEvents = function(taskListItem, checkBoxEventHandler) {
 	console.log("bind list item events");
     //select taskListItem's children
@@ -292,8 +297,9 @@ var bindTaskEvents = function(taskListItem, checkBoxEventHandler) {
 	}
 }
 
+//allows a list item to be edited 
 var editItem = function () {
-	  console.log("edit task");             ///<----- edit to reflect changes in local storage
+	  console.log("edit task");            
     
 	  var listItem = this.parentNode;
       var listType = this.parentNode.parentNode.id;
@@ -318,6 +324,7 @@ var editItem = function () {
 	    listItem.classList.toggle("editMode");
 }
 
+//reflects the edit changes in local storage
 var editData = function(listType, newLabel, oldLabel) {
 	if (listType === "to-buy") {
 		var arr = localStorage.getItem('groceryList').split(',');
@@ -352,6 +359,7 @@ var editData = function(listType, newLabel, oldLabel) {
 	}
 }
 
+//returns the label of the current checked recipe
 var getCurrentRecipe = function() {
 	var children = document.getElementById("recipes").querySelectorAll("li");
 	var i = 0;
@@ -365,6 +373,7 @@ var getCurrentRecipe = function() {
 	return label;
 }
 
+//deletes item from list
 var deleteItem = function () {
 	console.log("delete task...");
 	  // remove parent list item from the ul
@@ -378,6 +387,7 @@ var deleteItem = function () {
 	  deleteData(listType, label.innerText);
 }
 
+//reflects delete changes in local storage
 var deleteData = function(listType, label) {
 	if (listType === 'to-buy') {
 		var arr = localStorage.getItem('groceryList').split(',');
@@ -434,6 +444,7 @@ var returnListItemFromLabel = function (label, id) {
 	return listItem;
 }
 
+//used when a recipe is deleted, selects(checks) the first recipe item and loads its ingredients
 var recipeHelper= function() {
 	var label = getCurrentRecipe();
 	if (label === null) {
@@ -471,7 +482,7 @@ var itemOutOfStock = function() {
 }
 
 
-//new Grocery List Item
+//new List Item
 var createBasicListItem = function(labelString, type) {
 	//create list item
 	var listItem = document.createElement("li");
@@ -513,6 +524,7 @@ var createBasicListItem = function(labelString, type) {
 	return listItem;
 }
 
+//shows the potential changes made in the grocery auto-populate feature
 var stageList = function (num) {
 	return function() {
 		reLoad();
@@ -520,6 +532,7 @@ var stageList = function (num) {
 	}
 }
 
+//function that does does the autopopulate feature
 var compareIngredients = function (num){
 	var inStock = localStorage.getItem('inStock').split(",");
 	var recipeList = JSON.parse(localStorage.getItem('recipeList'));
@@ -555,11 +568,11 @@ var compareIngredients = function (num){
 	localStorage.setItem('potentialGroceryList', potentialGroceryList);
 }
 
+//makes the visual changes to illustrate the autopopulate process
 var stageResults = function(arr, num){
 	var listItem;
 	var groceryList = localStorage.getItem('groceryList').split(",");
 	var matches = returnMatches(arr, groceryList);
-	console.log("MATCHES: " + matches);
 	for(var i = 0; i < matches.length; i++){
 		highlight(matches[i], num, "to-buy", true);
 		var j = arr.indexOf(matches[i]);
@@ -573,11 +586,13 @@ var stageResults = function(arr, num){
 	
 }
 
+//helper function to help highlight listitems for the autopopulate
 var highlight = function (label, num, id, faded){
 	listItem = returnListItemFromLabel(label, id);
 	listItem.style.background = numColor(num, faded);
 }
 
+//helper function returns color for appropriate situation
 var numColor = function (num, faded) {
 	if(num === 1){
 		if (faded === true){
@@ -608,6 +623,7 @@ var numColor = function (num, faded) {
 	}
 }
 
+//helper function clears all listItems on page, then reloads from loacal storage
 var reLoad = function () {
 	while(groceryListHolder.firstChild){
 		groceryListHolder.removeChild(groceryListHolder.firstChild);
@@ -627,6 +643,7 @@ var reLoad = function () {
 	loadPage();
 }
 
+//helper returns an array of matches between 2 arrays
 var returnMatches = function (ingredients, inStock){
 	var matches = [];
 	for(var i = 0; i < ingredients.length; i++) {
@@ -639,6 +656,7 @@ var returnMatches = function (ingredients, inStock){
 	return matches;
 }
 
+//helper returns an array of differences between 2 arrays
 var returnDifference = function (ingredients, inStock){
 	var difference = [];
 	var matched = false;
@@ -656,6 +674,7 @@ var returnDifference = function (ingredients, inStock){
 	return difference;	
 }
 
+//helper takes an array, returns an array without duplicates
 var removeDuplicates = function (arr){
 	newArr = [];
 	obj = {};
@@ -668,6 +687,7 @@ var removeDuplicates = function (arr){
 	return newArr;
 }
 
+//commits the changes shown by the autopopulate feature, and reloads the page
 var commitList = function() {
 	if (localStorage.getItem('potentialGroceryList') !== null){
 	    var newItems = localStorage.getItem('potentialGroceryList').split(",");
@@ -710,5 +730,5 @@ commitButton.addEventListener("click", commitList);
 
 initLocalStorage();
 loadPage();
-showData();
+//showData();
 
