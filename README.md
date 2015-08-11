@@ -1,6 +1,6 @@
 Hi! This is a grocery list app. 
 
-It helps the user keep track of their grocery list (things to buy), what they have instock, and recipe lists.
+It helps the user keep track of their grocery list (things to buy), what they have in stock, and recipe lists.
 
 It also has and auto-populate feature that suggests items to buy based on the users own recipes and ingredients that the user already has in stock.
 
