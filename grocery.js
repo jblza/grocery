@@ -204,6 +204,7 @@ var loadList = function(createListItems, labels, type) {
   	        for(var i = 0; i < labels.length; i++) {
   	      	   var listItem = createListItems(labels[i], type);
 			   //<<----------------------------------------------------------------------------
+			   //listItem = ingredientColor(listItem);
   	     	   ingredientListHolder.appendChild(listItem);  
   		       bindTaskEvents(listItem); 
  	       }
@@ -227,6 +228,7 @@ var loadList = function(createListItems, labels, type) {
 var recipeSelect = function() {
 	//gets the label of the selected list item   
 	var label = this.parentNode.querySelector("label").innerText;
+	var recipeList = JSON.parse(localStorage.getItem('recipeList'));
 	
 	//gets a collection of the list items in the recipe section
 	//loops through and deselects all check boxes
@@ -241,7 +243,14 @@ var recipeSelect = function() {
 	while(ingredientListHolder.firstChild){
 		ingredientListHolder.removeChild(ingredientListHolder.firstChild);
 	}
-	loadList(createBasicListItem, JSON.parse(localStorage.getItem('recipeList'))[label], "ingredient");	
+	loadList(createBasicListItem, recipeList[label], "ingredient");	
+	
+	//<--------------------------------------------------------------------------------------------
+	ingredientColor(recipeList[label]);
+}
+
+var ingredientColor = function (list){
+	
 }
 
 //mark an item as bought and append it to the instock list
@@ -434,7 +443,7 @@ var deleteData = function(listType, label) {
 var returnListItemFromLabel = function (label, id) {
 	var ul = document.getElementById(id);
 	var listItem;
-	for(var i = 0; i< ul.children.length; i++){
+	for(var i = 0; i < ul.children.length; i++){
 		console.log(ul.children[i].querySelector("label").innerText);
 	      if(ul.children[i].querySelector("label").innerText === label)
 	      {
@@ -541,12 +550,14 @@ var compareIngredients = function (num){
 	var potentialGroceryList = [];
 	var matches = [];
 	var allMatches = [];
+	var differences = [];
 	
 	for(var i = 0; i < recipes.length; i++) {
 		ingredients = recipeList[recipes[i]];
 		console.log("ingredients: " + ingredients);
 		if (ingredients.length > num){
 			matches = returnMatches(ingredients, inStock);
+			
 			//how do i highlight ingredients?
 			console.log("matches " + matches);
 			if (matches.length >= num) {
@@ -562,24 +573,40 @@ var compareIngredients = function (num){
 	for(var k = 0; k < allMatches.length; k++){
 		highlight(allMatches[k], num, "in-stock", true)
 	}
-	console.log(potentialGroceryList);
-	console.log(allMatches);
+	console.log("potential g list:  " + potentialGroceryList);
+	console.log("instock:  " + allMatches);
+	ingredientColor = backgroundWrapper(num, true, potentialGroceryList, "ingredients");
+	ingredientColor(recipeList[getCurrentRecipe()]);
+	console.log("BEFORE STAGE potential g list:  " + potentialGroceryList);
+	
 	stageResults(potentialGroceryList, num);
+	console.log("AFTER STAGE potential g list:  " + potentialGroceryList);
 	localStorage.setItem('potentialGroceryList', potentialGroceryList);
+}
+
+var backgroundWrapper = function(num, faded, arr, id) {
+	console.log("glist 1: " + arr);
+	return function (list) {
+		var ingredients = returnMatches(list, arr);
+		for (var i = 0; i < ingredients.length; i++){
+			highlight(ingredients[i], num, id, faded);
+		}
+	}
 }
 
 //makes the visual changes to illustrate the autopopulate process
 var stageResults = function(arr, num){
+	var arr2 = arr.slice();
 	var listItem;
 	var groceryList = localStorage.getItem('groceryList').split(",");
-	var matches = returnMatches(arr, groceryList);
+	var matches = returnMatches(arr2, groceryList);
 	for(var i = 0; i < matches.length; i++){
 		highlight(matches[i], num, "to-buy", true);
-		var j = arr.indexOf(matches[i]);
-		arr.splice(j, 1);
+		var j = arr2.indexOf(matches[i]);
+		arr2.splice(j, 1);
 	}
-	for(var i = 0; i < arr.length; i++){
-		listItem = createBasicListItem(arr[i], "grocery");
+	for(var i = 0; i < arr2.length; i++){
+		listItem = createBasicListItem(arr2[i], "grocery");
 		listItem.style.background = numColor(num);
 		groceryListHolder.insertBefore(listItem, groceryListHolder.firstChild);
 	}
@@ -695,10 +722,12 @@ var commitList = function() {
 	    if (newItems !== null && newItems !== undefined && (newItems.length > 0)){
 	    	groceryList = localStorage.getItem('groceryList').split(",");
 	    	groceryList = newItems.concat(groceryList);
+			groceryList = removeDuplicates(groceryList);
 	    	localStorage.setItem('groceryList', groceryList);
 	    	localStorage.removeItem('potentialGroceryList');
 	    }
 	}
+	ingredientColor = function(list) {};
 	reLoad();
 }
 
